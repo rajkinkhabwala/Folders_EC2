@@ -2,7 +2,7 @@
 
 # Install prerequisites for codestar_remote_access
 python3.8 -m pip install boto==2.49.0
-python3.8 -m pip install boto3==1.19.1
+python3.8 -m pip install boto3==1.17.10
 python3.8 -m pip install pycryptodome==3.10.1
 
 # Install AWS CodeStar remote access management
