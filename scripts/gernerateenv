@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Please update below varoables as per your production setup
+PARAMATER="folder_env"
+REGION="us-west-2"
+WEB_DIR="/home/ec2-user/folder"
+WEB_USER="www-data"
+
+# Get parameters and put it into .env file inside application root
+aws ssm get-parameter --with-decryption --name $PARAMATER --region $REGION | jq '.Parameter.Value' > $WEB_DIR/.env

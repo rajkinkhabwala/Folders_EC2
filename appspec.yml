@@ -35,6 +35,8 @@ hooks:
     - location: scripts/codestar_remote_access
       timeout: 300
       runas: root
+    - location: scripts/generateenv
+      timeout: 300
     - location: scripts/start_server
       timeout: 300
       runas: root
