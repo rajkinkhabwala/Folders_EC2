@@ -1,0 +1,4 @@
+# Dependencies for production
+-r common.txt
+
+gunicorn==19.7.1

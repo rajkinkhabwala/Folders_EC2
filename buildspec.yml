@@ -1,0 +1,59 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+      # Install the Amazon Linux Extras repo
+      - yum install -y amazon-linux-extras-1.6.13
+
+      # Enable Postgres 11 (Amazon Linux Extras only works with Python2 in CodeBuild)
+      - PYTHON=python2 amazon-linux-extras enable postgresql11
+
+      # Install PostgreSQL
+      - yum install -y postgresql-11.5 postgresql-server-11.5 libpq-devel-11.5
+
+      # Initialize a new PostgreSQL database cluster
+      - su postgres -c 'pg_ctl -D /var/lib/pgsql/data -o "--auth-local=trust" initdb'
+      - su postgres -c 'pg_ctl -D /var/lib/pgsql/data start'
+
+      # Allows the database time to start up
+      - sleep 5
+
+      # Create a new PostgreSQL user and database for Django
+      - su postgres -c 'createuser ec2djangouser -s'
+      - su postgres -c 'createdb -O ec2djangouser ec2djangodb'
+
+      # Install gcc
+      - yum install -y gcc-7.3.1
+
+      # Update pip
+      - python3.8 -m pip install --upgrade pip==21.0.1
+
+      # Install pip packages
+      - python3.8 -m pip install -r requirements/common.txt
+
+  pre_build:
+    commands:
+      # Discover and run unit tests. For more information, see <https://docs.djangoproject.com/en/3.1/topics/testing/overview/>
+      - python3.8 manage.py test
+
+  post_build:
+    commands:
+      # Do not remove this statement. This command is required for AWS CodeStar projects.
+      # Update the AWS Partition, AWS Region, account ID and project ID in the project ARN in template-configuration.json file so AWS CloudFormation can tag project resources.
+      - sed -i.bak 's/\$PARTITION\$/'${PARTITION}'/g;s/\$AWS_REGION\$/'${AWS_REGION}'/g;s/\$ACCOUNT_ID\$/'${ACCOUNT_ID}'/g;s/\$PROJECT_ID\$/'${PROJECT_ID}'/g' template-configuration.json
+
+artifacts:
+  files:
+    - 'template.yml'
+    - 'ec2django/**/*'
+    - 'helloworld/**/*'
+    - 'scripts/**/*'
+    - 'appspec.yml'
+    - 'manage.py'
+    - 'requirements/**/*'
+    - 'requirements.txt'
+    - 'supervisord.conf'
+    - 'template-configuration.json'

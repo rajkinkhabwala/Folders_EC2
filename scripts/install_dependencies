@@ -1,0 +1,41 @@
+#!/bin/bash
+
+cd /home/ec2-user
+
+# Enable Postgres 11
+amazon-linux-extras enable postgresql11
+
+# Install PostgreSQL
+yum install -y postgresql-11.5 postgresql-server-11.5 libpq-devel-11.5
+
+# Initialize a new PostgreSQL database cluster and log file location
+su postgres -c 'pg_ctl -D /var/lib/pgsql/data -o "--auth-local=trust" initdb'
+su postgres -c 'mkdir -p /var/lib/pgsql/logs/'
+su postgres -c 'touch /var/lib/pgsql/logs/pgsql.log'
+su postgres -c 'pg_ctl -D /var/lib/pgsql/data -l /var/lib/pgsql/logs/pgsql.log start'
+
+# Allows the database time to start up
+sleep 5
+
+# Create a new PostgreSQL user and database for Django
+su postgres -c 'createuser ec2djangouser -s'
+su postgres -c 'createdb -O ec2djangouser ec2djangodb'
+
+# Enable Python 3.8
+amazon-linux-extras enable python3.8
+
+# Install gcc and python3
+yum install -y gcc-7.3.1 python38-3.8.5 python38-devel-3.8.5
+
+# Link Python 3.8 to python3
+ln -s -f /usr/bin/python3.8 /usr/bin/python3
+
+# Update pip
+python3.8 -m pip install --upgrade pip==21.0.1
+
+# Set up a virtual environment
+python3.8 -m venv environment
+source environment/bin/activate
+
+# Install awscli and python dev libraries
+python3.8 -m pip install -r requirements.txt
